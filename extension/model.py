@@ -1,9 +1,3 @@
-# Simple Linear Regression
-
-'''
-This model predicts the salary of the employ based on experience using simple linear regression model.
-'''
-
 # Importing the libraries
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,27 +5,48 @@ import pandas as pd
 import pickle
 import requests
 import json
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.linear_model import PassiveAggressiveClassifier
+from sklearn.feature_extraction.text import TfidfVectorizer
+from preprocessing import wordopt
+
 
 # Importing the dataset
-dataset = pd.read_csv('Salary_Data.csv')
-X = dataset.iloc[:, :-1].values
-y = dataset.iloc[:, 1].values
+df_eng = pd.read_csv('English.csv')
+df_fil = pd.read_csv('Filipino.csv')
 
-# Splitting the dataset into the Training set and Test set
-from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 1/3, random_state = 0)
+# Prepare dataset
+df_merge = pd.concat([df_eng, df_fil], axis=0)
+df = df_merge.drop(["Page"], axis = 1)
+df = df.sample(frac = 1) # shuffle dataset
+df.reset_index(inplace = True)
+df.drop(["index"], axis = 1, inplace = True)
 
-# Fitting Simple Linear Regression to the Training set
-from sklearn.linear_model import LinearRegression
-regressor = LinearRegression()
-regressor.fit(X_train, y_train)
+# Define X and y
+x = df["Text"]
+y = df["Label"]
 
-# Predicting the Test set results
-y_pred = regressor.predict(X_test)
+df["Text"] = df["Text"].apply(wordopt)  #apply wordopt function
+df.to_csv('cleaned.csv')
+
+# Train Test Split
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+
+# Convert text to vectors
+vectorizer = TfidfVectorizer()
+X = vectorizer.fit_transform(x)
+xv_train = vectorizer.transform(x_train)
+xv_test = vectorizer.transform(x_test)
+pickle.dump(vectorizer.vocabulary_, open('vectorizer.pkl','wb'))
+
+# Using Support Vector Machine
+classifier = PassiveAggressiveClassifier(max_iter=500, C=100) 
+classifier.fit(xv_train, y_train)
+
+#evaluating the model
+#pred_classfier = classifier.predict(xv_test)
+#score = cross_val_score(classifier, X, y, cv=10)
+#print(score.mean()) # score of the model with cv=10
 
 # Saving model using pickle
-pickle.dump(regressor, open('model.pkl','wb'))
-
-# Loading model to compare the results
-model = pickle.load( open('model.pkl','rb'))
-print(model.predict([[1.8]]))
+pickle.dump(classifier, open('model_fakenews.pkl','wb'))
