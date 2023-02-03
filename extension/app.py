@@ -4,9 +4,20 @@
 import numpy as np
 from flask import Flask, request, jsonify, render_template
 import pickle
+from model import wordopt
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+
 
 app = Flask(__name__)
-model = pickle.load(open('model.pkl', 'rb'))
+model = pickle.load(open('model_fakenews.pkl', 'rb'))
+tfidf = TfidfVectorizer(vocabulary=pickle.load(open("vectorizer.pkl", "rb")))
+
+def output_lable(n):
+    if n == 0:
+        return "NOT Fake news"
+    elif n == 1:
+        return "Fake News"
 
 @app.route('/')
 def home():
@@ -17,14 +28,22 @@ def predict():
     '''
     For rendering results on HTML GUI
     '''
-    int_features = [int(x) for x in request.form.values()]
-    final_features = [np.array(int_features)]
-    prediction = model.predict(final_features)
+    news = [x for x in request.form.values()]
+    df = pd.read_csv("cleaned.csv")
+    x = df["Text"]
+    y = df["Label"]
+    X = tfidf.fit_transform(x)
+    inp = {"text": news}
+    dataframe =  pd.DataFrame(inp) # similar to vectorization
+    dataframe["text"] = dataframe["text"].apply(wordopt) # preprocessing
+    x_test = dataframe["text"] 
+    final_features = tfidf.transform(x_test)
+    prediction = model.predict(final_features) # prediction part
+    output = prediction[0] # get 1st value in the list
+    
+    return render_template('index.html', prediction_text='News is {}'.format(output_lable(output)))
 
-    output = round(prediction[0], 2)
-
-    return render_template('index.html', prediction_text='Salary is {}'.format(output))
-
+    
 
 @app.route('/predict_api',methods=['POST'])
 def predict_api():
