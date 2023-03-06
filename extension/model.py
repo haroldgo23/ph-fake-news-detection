@@ -40,7 +40,8 @@ xv_test = vectorizer.transform(x_test)
 pickle.dump(vectorizer.vocabulary_, open('vectorizer.pkl','wb'))
 
 # Using Support Vector Machine
-classifier = PassiveAggressiveClassifier(max_iter=500, C=100) 
+classifier = LogisticRegression(solver='saga', penalty='l1', 
+                                max_iter=1000, C=100)
 classifier.fit(xv_train, y_train)
 
 #evaluating the model
