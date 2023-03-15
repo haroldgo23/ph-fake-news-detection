@@ -15,3 +15,7 @@ The flask application is integrated with a model that predicts whether the input
 
 # App
 app.py contains all the required for flask and to manage APIs.
+
+# Dataset
+English.csv and Filipino.csv are the dataset used for this study. The cleaned.csv spreadsheet is a combination of the English.csv and Filipino.csv that is already
+preprocessed. 
