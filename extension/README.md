@@ -2,7 +2,7 @@
 First, download all required modules through `pip install -r requirements.txt`
 
 Currently, the Flask web app is operational and the extension doesn't have the appropriate tasks yet to display the result after pressing the button.
-To view the Flask web application, simply run 'python model.py' first to instantiate the model, then run `python app.py`
+To view the Flask web application, simply run `python model.py` first to instantiate the model, then run `python app.py`
 
 To install the Chrome extension:
 - Access `chrome://extensions/`
